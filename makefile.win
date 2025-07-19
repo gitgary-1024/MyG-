@@ -1,0 +1,37 @@
+# Project: MyG++
+# Makefile created by Red Panda C++ 3.2.2958
+
+CXX      = "g++.exe"
+CC       = "gcc.exe"
+WINDRES  = "windres.exe"
+RM       = del /q /f
+CD       = cd /d
+LIBS     = "-pg" "-Wl,--stack,12582912" "-lws2_32" "-static"
+INCS     = 
+CXXINCS  = 
+CXXFLAGS = $(CXXINCS) "-g3" "-std=c++2a" "-pipe" "-D_DEBUG"
+CFLAGS   = $(INCS) "-g3" "-pipe" "-D_DEBUG"
+WINDRESFLAGS = 
+RES      = MyG++_private.res
+OBJ      = main.o $(RES)
+BIN      = MyG++.exe
+LINKOBJ  = "main.o" "MyG++_private.res"
+CLEANOBJ = "main.o" "MyG++_private.res" "MyG++.exe"
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	-$(RM) $(CLEANOBJ) >NUL 2>&1
+
+MyG++.exe: $(OBJ)
+
+	$(CXX) $(LINKOBJ) -o "MyG++.exe" $(LIBS)
+
+main.o: main.cpp
+	$(CXX) -c "main.cpp" -o "main.o" $(CXXFLAGS) 
+
+MyG++_private.res: MyG++_private.rc 
+	$(WINDRES) -i "MyG++_private.rc" --input-format=rc -o "MyG++_private.res" -O coff $(WINDRESFLAGS) 
+
