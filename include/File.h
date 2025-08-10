@@ -2,11 +2,12 @@
 #include<string>
 #include<vector>
 #include"./Token.h"
-#include"./AST.h"
-#include"./ASTPrinter.h"
+#include"./AST/AST.h"
+#include"./AST/ASTPrinter.h"
+#include"./IR/IR.h"
 using namespace std;
 
-const string symbolList = "+-*/=(){}[];,";
+const string symbolList = "+-*/=(){}[];,&|!><";
 
 bool issymbol(char c) {
 	return symbolList.find(c) != symbolList.npos;
@@ -21,6 +22,7 @@ class File {
 		fstream tempFile;
 		vector<Token> TokenList;
 		ASTBaseNode* ASTroot;
+		vector<IRInstr> IR;
 		
 		void format() {
 			string line = "";
@@ -28,26 +30,37 @@ class File {
 			while (getline(codeFile, line)) {
 				for (size_t i = 0; i < line.size(); i++) {
 					tempFile << line[i];
+					bool isMultiCharOp = false;
+					
+					// 检查是否为多字符逻辑运算符（如&&、||）
+					if (i + 1 < line.size()) {
+						string twoChars = string(1, line[i]) + string(1, line[i + 1]);
+						
+						// 包含逻辑运算符和比较运算符
+						if (twoChars == "&&" || twoChars == "||" ||
+						twoChars == "==" || twoChars == "!=" ||
+						twoChars == ">=" || twoChars == "<=" ||
+						twoChars == "++") {
+							isMultiCharOp = true;
+						}
+					}
+					
+					// 仅在不是多字符运算符的情况下，才添加空格分隔
+					if (issymbol(line[i])) {
+						if ((i + 1 < line.size()) && isdigit(line[i + 1]) && !isMultiCharOp) {
+							tempFile << " ";
+						}
+						
+						if ((i + 1 < line.size()) && islitter(line[i + 1]) && !isMultiCharOp) {
+							tempFile << " ";
+						}
+						
+						if ((i + 1 < line.size()) && issymbol(line[i + 1]) && !isMultiCharOp) {
+							tempFile << " ";
+						}
+					}
 					
 					if (isdigit(line[i])) { // 数字
-						if ((i + 1 < line.size()) && issymbol(line[i + 1])) { // 符号
-							tempFile << " ";
-						}
-					}
-					
-					if (issymbol(line[i])) { // 数字
-						if ((i + 1 < line.size()) && isdigit(line[i + 1])) { // 符号
-							tempFile << " ";
-						}
-					}
-					
-					if (issymbol(line[i])) { // 符号
-						if ((i + 1 < line.size()) && islitter(line[i + 1])) { // 字母
-							tempFile << " ";
-						}
-					}
-					
-					if (issymbol(line[i])) { // 符号
 						if ((i + 1 < line.size()) && issymbol(line[i + 1])) { // 符号
 							tempFile << " ";
 						}
@@ -80,25 +93,29 @@ class File {
 			ASTroot = ast.buildAST();
 		}
 		
+		void compileIR() {
+			IR = getIRFromAST(ASTroot);
+		}
+		
 	public:
 		File() {}
 		
 		File(const string& fileName) {
 			codeFile.open(fileName);
-			tempFile.open("temp.txt");
+			tempFile.open("temp.txt", ios::out | ios::in | ios::trunc);
 			compile();
 		}
 		
 		~File() {
 			codeFile.close();
 			tempFile.close();
-			delete ASTroot;
 		}
 		
 		void compile() {
 			format(); // 格式化
 			getAllToken(); // 转为token形式
 			compileAST(); // 转为AST
+			compileIR();
 			#ifdef _DEBUG
 			printAST();
 			#endif

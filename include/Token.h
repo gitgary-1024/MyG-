@@ -9,18 +9,26 @@ enum TokenType {
 	Keywords, // 关键词
 	Identifiers, // 变量/函数
 	Literals, // 常数
-	Operators, // 运算符
-	Punctuators // 分隔符
+	Operators, // 运算符（双目 或 单目）
+	Punctuators, // 分隔符
 };
 
 unordered_map<string, TokenType> StringToTokenType = {
 	{"int", Keywords}, {"return", Keywords},
+	{"if", Keywords}, {"else", Keywords},
+	{"for", Keywords}, // 关键字
+	
 	{"+", Operators}, {"-", Operators},
-	{"*", Operators}, {"/", Operators},
+	{"*", Operators}, {"/", Operators}, // 算符
+	{"&&", Operators}, {"||", Operators}, {"!", Operators}, // 添加逻辑运算符
+	{">", Operators}, {"<", Operators}, {"==", Operators},
+	{"!=", Operators}, {">=", Operators}, {"<=", Operators}, // 新增比较运算符
+	{"++", Operators}, // 新增自增算符
+	
 	{"(", Punctuators}, {")", Punctuators},
 	{"[", Punctuators}, {"]", Punctuators},
 	{"{", Punctuators}, {"}", Punctuators},
-	{";", Punctuators}, {",", Punctuators}
+	{";", Punctuators}, {",", Punctuators} // 符号
 };
 
 bool isStringDigit(const string& str) {
